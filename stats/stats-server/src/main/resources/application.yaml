@@ -1,9 +1,9 @@
 server:
-  port: 8080
+  port: 9090
 
 spring:
   application:
-    name: gateway-server
+    name: stats-server
   config:
     import: "configserver:"
   cloud:
