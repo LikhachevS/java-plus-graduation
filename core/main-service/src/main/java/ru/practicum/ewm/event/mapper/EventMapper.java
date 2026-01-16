@@ -28,17 +28,13 @@ public interface EventMapper {
     @Mapping(target = "requestModeration",
             expression = "java(newEventDto.getRequestModeration() != null ? newEventDto.getRequestModeration() : true)")
 
-    @Mapping(target = "id", ignore = true)
     @Mapping(target = "state", ignore = true)
-    @Mapping(target = "views", ignore = false)
+    @Mapping(target = "views", ignore = true)
     Event toEntity(NewEventDto newEventDto);
 
-    @Mapping(target = "id", source = "id")
     @Mapping(target = "eventDate", expression = "java(toLocalDateTimeForMap(event.getEventDate()))")
     EventShortDto toShortDto(Event event);
 
-    @Mapping(target = "id", source = "id")
-    @Mapping(target = "views", source = "views")
     @Mapping(target = "createdOn", expression = "java(toLocalDateTimeForMap(event.getCreatedOn()))")
     @Mapping(target = "eventDate", expression = "java(toLocalDateTimeForMap(event.getEventDate()))")
     @Mapping(target = "publishedOn", expression = "java(toLocalDateTimeForMap(event.getPublishedOn()))")
