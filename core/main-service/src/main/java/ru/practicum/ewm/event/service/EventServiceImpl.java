@@ -318,8 +318,9 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findByIdAndState(eventId, EventState.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException("Опубликованного Event id={} нет", eventId));
 
+        incrementViews(eventId);
         statsClient.hit(request);
-        this.setViewsForEvent(event);
+        setViewsForEvent(event);
 
         return eventMapper.toFullDto(event);
     }
@@ -450,5 +451,10 @@ public class EventServiceImpl implements EventService {
                 .build());
 
         event.setViews(stats.getFirst().getHits());
+    }
+
+    @Transactional
+    private void incrementViews(Long eventId) {
+        eventRepository.incrementViews(eventId);
     }
 }
