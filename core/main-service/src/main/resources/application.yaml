@@ -1,3 +1,6 @@
+explore-with-me-server:
+  url: http://stats-server:9090
+
 server:
   port: 0
 
