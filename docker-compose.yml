@@ -1,14 +1,32 @@
 services:
-  stats-server:
-    ports:
-      - "9090:9090"
-
   stats-db:
     image: postgres:16.1
-
-  ewm-service:
+    container_name: ewm-stats-db
     ports:
-      - "8080:8080"
+      - "6432:5432"
+    environment:
+      - POSTGRES_DB=stats
+      - POSTGRES_USER=stats
+      - POSTGRES_PASSWORD=stats
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -p 5432" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
-  ewm-db:
+  main-db:
     image: postgres:16.1
+    container_name: ewm-main-db
+    ports:
+      - "4432:5432"
+    environment:
+      - POSTGRES_DB=main
+      - POSTGRES_USER=main
+      - POSTGRES_PASSWORD=main
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -p 5432" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
