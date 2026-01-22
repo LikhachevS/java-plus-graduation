@@ -12,9 +12,10 @@ import ru.practicum.ewm.comment.model.Comment;
 import ru.practicum.ewm.comment.model.CommentState;
 import ru.practicum.ewm.comment.repository.CommentRepository;
 import ru.practicum.ewm.event.repository.EventRepository;
-import ru.practicum.ewm.exception.ConflictException;
-import ru.practicum.ewm.exception.NotFoundException;
-import ru.practicum.ewm.user.repository.UserRepository;
+import ru.practicum.ewm.user_service.client.UserServiceClient;
+import ru.practicum.ewm.user_service.dto.UserDto;
+import ru.practicum.ewm.user_service.exception.ConflictException;
+import ru.practicum.ewm.user_service.exception.NotFoundException;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CommentServiceImpl implements CommentService {
 
-    private final UserRepository userRepository;
+    private final UserServiceClient userServiceClient;
     private final EventRepository eventRepository;
     private final CommentRepository commentRepository;
 
@@ -75,9 +76,10 @@ public class CommentServiceImpl implements CommentService {
                     eventId, userId);
         }
 
+        UserDto userDto = userServiceClient.getUserById(userId);
+
         Comment comment = commentMapper.toEntity(dto);
-        comment.setAuthor(userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User id={}, не найден", userId)));
+        comment.setAuthorId(userDto.getId());
         comment.setEvent(eventRepository
                 .findById(eventId).orElseThrow(() -> new NotFoundException("Event id={}, не найден", eventId)));
         comment = commentRepository.save(comment);
@@ -123,7 +125,7 @@ public class CommentServiceImpl implements CommentService {
         log.info("Метод checkExistsUserAndComment(); userId={}, commentId={}", userId, commentId);
 
         if (!commentRepository.existsByIdAndAuthorId(commentId, userId)) {
-            if (!userRepository.existsById(userId)) {
+            if (userServiceClient.getUserById(userId) == null) {
                 throw new NotFoundException("User id={}, не существует", userId);
             } else if (!commentRepository.existsById(commentId)) {
                 throw new NotFoundException("Comment id={}, не существует", commentId);

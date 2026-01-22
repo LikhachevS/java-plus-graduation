@@ -6,11 +6,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.dto.NewUserRequest;
-import ru.practicum.ewm.dto.UserDto;
-import ru.practicum.ewm.exception.BadRequestException;
-import ru.practicum.ewm.exception.ConflictException;
-import ru.practicum.ewm.exception.NotFoundException;
+import ru.practicum.ewm.user_service.dto.NewUserRequest;
+import ru.practicum.ewm.user_service.dto.UserDto;
+import ru.practicum.ewm.user_service.exception.BadRequestException;
+import ru.practicum.ewm.user_service.exception.ConflictException;
+import ru.practicum.ewm.user_service.exception.NotFoundException;
 import ru.practicum.ewm.mapper.UserMapper;
 import ru.practicum.ewm.model.User;
 import ru.practicum.ewm.repository.UserRepository;
@@ -75,5 +75,28 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new NotFoundException("User userId={} не найден", userId);
         }
+    }
+
+    @Override
+    public UserDto getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User userId={} не найден", userId));
+        return userMapper.toFullDto(user);
+    }
+
+    @Override
+    public List<UserDto> getUsersByIds(List<Long> ids) {
+        log.info("Получение пользователей по IDs: {}", ids);
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+
+        List<User> users = userRepository.findAllById(ids);
+
+        log.debug("Найдено пользователей: {} из запрошенных {}", users.size(), ids.size());
+
+        return users.stream()
+                .map(userMapper::toFullDto)
+                .toList();
     }
 }

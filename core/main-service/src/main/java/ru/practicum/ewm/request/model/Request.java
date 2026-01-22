@@ -3,7 +3,6 @@ package ru.practicum.ewm.request.model;
 import jakarta.persistence.*;
 import lombok.*;
 import ru.practicum.ewm.event.model.Event;
-import ru.practicum.ewm.user.model.User;
 
 import java.time.Instant;
 
@@ -26,10 +25,8 @@ public class Request {
     @ToString.Exclude
     private Event event;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_requests_users"))
-    @ToString.Exclude
-    private User requester;
+    @Column(name = "requester_id", nullable = false)
+    private Long requesterId;
 
     @Column
     @Builder.Default

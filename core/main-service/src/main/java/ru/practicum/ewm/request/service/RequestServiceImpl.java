@@ -7,15 +7,15 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
 import ru.practicum.ewm.event.repository.EventRepository;
-import ru.practicum.ewm.exception.ConflictException;
-import ru.practicum.ewm.exception.NotFoundException;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 import ru.practicum.ewm.request.mapper.RequestMapper;
 import ru.practicum.ewm.request.model.Request;
 import ru.practicum.ewm.request.model.RequestStatus;
 import ru.practicum.ewm.request.repository.RequestRepository;
-import ru.practicum.ewm.user.model.User;
-import ru.practicum.ewm.user.repository.UserRepository;
+import ru.practicum.ewm.user_service.client.UserServiceClient;
+import ru.practicum.ewm.user_service.dto.UserDto;
+import ru.practicum.ewm.user_service.exception.ConflictException;
+import ru.practicum.ewm.user_service.exception.NotFoundException;
 
 import java.util.List;
 
@@ -25,7 +25,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class RequestServiceImpl implements RequestService {
 
-    private final UserRepository userRepository;
+    private final UserServiceClient userServiceClient;
     private final EventRepository eventRepository;
     private final RequestRepository requestRepository;
 
@@ -36,7 +36,7 @@ public class RequestServiceImpl implements RequestService {
     public ParticipationRequestDto create(Long userId, Long eventId) {
         log.debug("Метод createRequest(); userId={}, eventId={}", userId, eventId);
 
-        User user = this.findUserBy(userId);
+        UserDto userDto = userServiceClient.getUserById(userId);
         Event event = this.findEventBy(eventId);
 
         if (eventRepository.existsByIdAndInitiatorId(eventId, userId)) {
@@ -67,7 +67,7 @@ public class RequestServiceImpl implements RequestService {
         }
 
         Request request = Request.builder()
-                .requester(user)
+                .requesterId(userDto.getId())
                 .event(event)
                 .status(status)
                 .build();
@@ -96,7 +96,7 @@ public class RequestServiceImpl implements RequestService {
         Request request = this.findRequestBy(requestId);
         request.setStatus(RequestStatus.CANCELED);
 
-        if (!request.getRequester().getId().equals(userId)) {
+        if (!request.getRequesterId().equals(userId)) {
             throw new ConflictException("User id={} не является автором этого запроса", userId);
         }
         request = requestRepository.save(request);
@@ -105,8 +105,12 @@ public class RequestServiceImpl implements RequestService {
     }
 
 
-    private User findUserBy(Long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User id={} не найден", userId));
+    private UserDto findUserBy(Long userId) {
+        UserDto userDto = userServiceClient.getUserById(userId);
+        if (userDto == null) {
+            throw new NotFoundException("User id={}, не существует", userId);
+        }
+        return userDto;
     }
 
     private Request findRequestBy(Long requestId) {

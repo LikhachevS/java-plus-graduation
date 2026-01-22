@@ -1,4 +1,4 @@
-package ru.practicum.ewm.exception;
+package ru.practicum.ewm.user_service.exception;
 
 public class BadRequestException extends ApiError {
 
