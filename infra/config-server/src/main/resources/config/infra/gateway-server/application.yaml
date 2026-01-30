@@ -29,7 +29,7 @@ spring:
           predicates:
             - Path=/events/{eventId}/comments**
 
-        - id: main-service-all-routes
-          uri: lb://main-service
+        - id: event-service-all-routes
+          uri: lb://event-service
           predicates:
             - Path=/**

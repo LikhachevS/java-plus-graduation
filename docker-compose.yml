@@ -15,15 +15,15 @@ services:
       retries: 5
       start_period: 10s
 
-  main-db:
+  event-db:
     image: postgres:16.1
-    container_name: ewm-main-db
+    container_name: ewm-event-db
     ports:
       - "4432:5432"
     environment:
-      - POSTGRES_DB=main
-      - POSTGRES_USER=main
-      - POSTGRES_PASSWORD=main
+      - POSTGRES_DB=event
+      - POSTGRES_USER=event
+      - POSTGRES_PASSWORD=event
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -p 5432" ]
       interval: 10s

@@ -6,7 +6,7 @@ server:
 
 spring:
   application:
-    name: main-service
+    name: event-service
   config:
     import: "configserver:"
   cloud:
