@@ -1,4 +1,4 @@
-package ru.practicum.ewm.comment.controller;
+package ru.practicum.ewm.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -7,10 +7,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.comment.dto.CommentFullDto;
-import ru.practicum.ewm.comment.dto.NewCommentDto;
-import ru.practicum.ewm.comment.dto.UpdCommentDto;
-import ru.practicum.ewm.comment.service.CommentService;
+import ru.practicum.ewm.dto.CommentFullDto;
+import ru.practicum.ewm.dto.NewCommentDto;
+import ru.practicum.ewm.dto.UpdCommentDto;
+import ru.practicum.ewm.service.CommentService;
 
 import java.util.List;
 

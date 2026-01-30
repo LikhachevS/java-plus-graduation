@@ -1,17 +1,18 @@
-package ru.practicum.ewm.comment.service;
+package ru.practicum.ewm.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.ewm.comment.dto.CommentFullDto;
-import ru.practicum.ewm.comment.dto.CommentPublicDto;
-import ru.practicum.ewm.comment.dto.NewCommentDto;
-import ru.practicum.ewm.comment.dto.UpdCommentDto;
-import ru.practicum.ewm.comment.mapper.CommentMapper;
-import ru.practicum.ewm.comment.model.Comment;
-import ru.practicum.ewm.comment.model.CommentState;
-import ru.practicum.ewm.comment.repository.CommentRepository;
-import ru.practicum.ewm.event.repository.EventRepository;
+import ru.practicum.ewm.dto.CommentFullDto;
+import ru.practicum.ewm.dto.CommentPublicDto;
+import ru.practicum.ewm.dto.NewCommentDto;
+import ru.practicum.ewm.dto.UpdCommentDto;
+import ru.practicum.ewm.event_service.client.EventServiceClient;
+import ru.practicum.ewm.event_service.dto.EventDtoForRequestService;
+import ru.practicum.ewm.mapper.CommentMapper;
+import ru.practicum.ewm.model.Comment;
+import ru.practicum.ewm.model.CommentState;
+import ru.practicum.ewm.repository.CommentRepository;
 import ru.practicum.ewm.user_service.client.UserServiceClient;
 import ru.practicum.ewm.user_service.dto.UserDto;
 import ru.practicum.ewm.user_service.exception.ConflictException;
@@ -25,7 +26,7 @@ import java.util.List;
 public class CommentServiceImpl implements CommentService {
 
     private final UserServiceClient userServiceClient;
-    private final EventRepository eventRepository;
+    private final EventServiceClient eventServiceClient;
     private final CommentRepository commentRepository;
 
     private final CommentMapper commentMapper;
@@ -71,17 +72,17 @@ public class CommentServiceImpl implements CommentService {
     public CommentFullDto add(NewCommentDto dto, Long eventId, Long userId) {
         log.info("Метод add(); eventId={}, userId={}; dto={}", eventId, userId, dto);
 
-        if (!eventRepository.existsByIdAndInitiatorId(eventId, userId)) {
-            throw new ConflictException("Инициатор не может комментировать свои события; eventId={}, userId={}",
-                    eventId, userId);
+        EventDtoForRequestService eventDto = eventServiceClient.getEventById(eventId); // Вызов через Feign
+        if (eventDto.getInitiatorId().equals(userId)) {
+            throw new ConflictException(
+                    "Инициатор не может комментировать свои события; eventId={}, userId={}", eventId, userId);
         }
 
         UserDto userDto = userServiceClient.getUserById(userId);
 
         Comment comment = commentMapper.toEntity(dto);
         comment.setAuthorId(userDto.getId());
-        comment.setEvent(eventRepository
-                .findById(eventId).orElseThrow(() -> new NotFoundException("Event id={}, не найден", eventId)));
+        comment.setEventId(eventId);
         comment = commentRepository.save(comment);
 
         return commentMapper.toFullDto(comment);
@@ -90,6 +91,13 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<CommentFullDto> getAllBy(Long userId, Long eventId) {
         log.info("Метод getUserCommentsForEvent(); eventId={}; commentId={}", userId, eventId);
+
+        try {
+            eventServiceClient.getEventById(eventId);
+        } catch (Exception e) {
+            log.warn("Событие с ID={} не найдено в сервисе событий или проблема с сервисом событий", eventId);
+            throw new NotFoundException("Событие с ID=%d не найдено", eventId);
+        }
 
         List<Comment> comments = commentRepository.findAllByEventIdAndAuthorId(eventId, userId);
 

@@ -1,8 +1,7 @@
-package ru.practicum.ewm.comment.model;
+package ru.practicum.ewm.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import ru.practicum.ewm.event.model.Event;
 
 import java.time.Instant;
 
@@ -36,12 +35,8 @@ public class Comment {
     @Column(name = "author_id", nullable = false)
     private Long authorId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_comments_events"))
-    @ToString.Exclude
-    private Event event;
+    @Column(name = "event_id", nullable = false)
+    private Long eventId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

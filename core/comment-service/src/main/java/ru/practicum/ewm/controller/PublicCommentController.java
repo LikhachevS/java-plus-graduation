@@ -1,4 +1,4 @@
-package ru.practicum.ewm.comment.controller;
+package ru.practicum.ewm.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.ewm.comment.dto.CommentPublicDto;
-import ru.practicum.ewm.comment.service.CommentService;
+import ru.practicum.ewm.dto.CommentPublicDto;
+import ru.practicum.ewm.service.CommentService;
 
 import java.util.List;
 
