@@ -9,7 +9,7 @@ import org.springframework.web.client.RestTemplate;
 
 @SpringBootApplication
 @EnableFeignClients(basePackages = "ru.practicum.ewm")
-public class MainServiceApplication {
+public class EventServiceApplication {
 
     @Bean
     @LoadBalanced
@@ -18,6 +18,6 @@ public class MainServiceApplication {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(MainServiceApplication.class, args);
+        SpringApplication.run(EventServiceApplication.class, args);
     }
 }
