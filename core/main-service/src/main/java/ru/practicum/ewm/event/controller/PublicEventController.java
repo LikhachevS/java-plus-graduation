@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.UserEventSearchParams;
 import ru.practicum.ewm.event.service.EventService;
+import ru.practicum.ewm.event_service.dto.EventDtoForRequestService;
 
 import java.util.List;
 
@@ -37,5 +38,31 @@ public class PublicEventController {
 
         List<EventFullDto> events = eventService.getPublicBy(params, request);
         return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/internal/{eventId}")
+    public ResponseEntity<EventDtoForRequestService> getEventById(
+            @PathVariable Long eventId) {
+
+        log.debug("Feign-запрос: получение EventDtoForRequestService для eventId={}", eventId);
+
+        EventDtoForRequestService dto = eventService.getEventDtoForRequestService(eventId);
+
+        return ResponseEntity.ok(dto);
+    }
+
+    @PutMapping("internal/{eventId}/increment-confirmed")
+    public ResponseEntity<EventDtoForRequestService> incrementConfirmedRequests(
+            @PathVariable Long eventId) {
+
+        log.debug("Feign-запрос: инкремент confirmedRequests для eventId={}", eventId);
+
+        try {
+            EventDtoForRequestService updatedDto = eventService.incrementConfirmedRequests(eventId);
+            return ResponseEntity.ok(updatedDto);
+        } catch (Exception e) {
+            log.error("Ошибка при инкременте confirmedRequests для eventId={}: {}", eventId, e.getMessage());
+            return ResponseEntity.status(500).build();
+        }
     }
 }

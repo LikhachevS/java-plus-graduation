@@ -2,7 +2,10 @@ package ru.practicum.ewm.event.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import ru.practicum.ewm.event.dto.*;
-import ru.practicum.ewm.request.dto.ParticipationRequestDto;
+import ru.practicum.ewm.event_service.dto.EventDtoForRequestService;
+import ru.practicum.ewm.request_service.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.ewm.request_service.dto.ParticipationRequestDto;
+import ru.practicum.ewm.request_service.dto.UpdRequestsStatusResult;
 
 import java.util.List;
 
@@ -30,4 +33,8 @@ public interface EventService {
     List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId);
 
     UpdRequestsStatusResult updateRequests(Long userId, Long eventId, EventRequestStatusUpdateRequest updDto);
+
+    EventDtoForRequestService incrementConfirmedRequests(Long eventId);
+
+    EventDtoForRequestService getEventDtoForRequestService(Long eventId);
 }

@@ -4,6 +4,7 @@ import org.mapstruct.*;
 import ru.practicum.ewm.category.mapper.CategoryMapper;
 import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.model.Event;
+import ru.practicum.ewm.event_service.dto.EventDtoForRequestService;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -58,6 +59,14 @@ public interface EventMapper {
     @Mapping(target = "state", ignore = true)
     @Mapping(target = "views", ignore = true)
     void updateFromDto(UpdEventAdminRequest updEventAdminRequest, @MappingTarget Event event);
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "initiatorId", source = "initiatorId")
+    @Mapping(target = "state", source = "state")
+    @Mapping(target = "participantLimit", source = "participantLimit")
+    @Mapping(target = "confirmedRequests", source = "confirmedRequests")
+    @Mapping(target = "requestModeration", source = "requestModeration")
+    EventDtoForRequestService toEventDtoForRequestService(Event event);
 
     default Instant toInstantForMap(LocalDateTime dateTime) {
         return dateTime != null ? dateTime.toInstant(ZoneOffset.UTC) : null;
