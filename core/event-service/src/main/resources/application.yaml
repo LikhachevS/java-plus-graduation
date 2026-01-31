@@ -1,9 +1,12 @@
+explore-with-me-server:
+  url: http://stats-server:9090
+
 server:
-  port: 9090
+  port: 0
 
 spring:
   application:
-    name: stats-server
+    name: event-service
   config:
     import: "configserver:"
   cloud:

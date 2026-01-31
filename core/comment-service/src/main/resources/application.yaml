@@ -1,9 +1,9 @@
 server:
-  port: 9090
+  port: 0
 
 spring:
   application:
-    name: stats-server
+    name: comment-service
   config:
     import: "configserver:"
   cloud:
