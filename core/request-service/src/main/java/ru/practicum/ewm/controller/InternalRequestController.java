@@ -48,4 +48,9 @@ public class InternalRequestController {
         );
         return ResponseEntity.ok(updatedDtos);
     }
+
+    @PostMapping("{eventId}/participant/{userId}")
+    public boolean isUserParticipant(@PathVariable Long userId, @PathVariable Long eventId) {
+        return requestService.isParticipant(userId, eventId);
+    }
 }

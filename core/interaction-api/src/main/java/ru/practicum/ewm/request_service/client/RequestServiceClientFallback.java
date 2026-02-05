@@ -28,4 +28,10 @@ public class RequestServiceClientFallback implements RequestServiceClient {
         log.error("Вызов updateRequestStatuses({}) упал в fallback. Возврат пустого списка.", request);
         return List.of();
     }
+
+    @Override
+    public boolean isParticipant(Long userId, Long eventId) {
+        log.error("Вызов isParticipant({}, {}) упал в fallback. Возврат пустого списка.", userId, eventId);
+        return false;
+    }
 }

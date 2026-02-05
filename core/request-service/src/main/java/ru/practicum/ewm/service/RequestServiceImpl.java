@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.client.stats.CollectorClient;
 import ru.practicum.ewm.event_service.client.EventServiceClient;
 import ru.practicum.ewm.event_service.dto.EventDtoForRequestService;
 import ru.practicum.ewm.event_service.enums.EventState;
@@ -32,6 +33,7 @@ public class RequestServiceImpl implements RequestService {
     private final UserServiceClient userServiceClient;
     private final EventServiceClient eventServiceClient;
     private final RequestRepository requestRepository;
+    private final CollectorClient grpcCollectorClient;
 
     private final RequestMapper requestMapper;
 
@@ -80,6 +82,8 @@ public class RequestServiceImpl implements RequestService {
                 .status(status)
                 .build();
         request = requestRepository.save(request);
+
+        grpcCollectorClient.recordRegister(userId, eventId);
 
         return requestMapper.toDto(request);
     }
@@ -147,6 +151,11 @@ public class RequestServiceImpl implements RequestService {
         return requests.stream()
                 .map(requestMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isParticipant(Long userId, Long eventId) {
+        return requestRepository.existsByEventIdAndRequesterId(userId, eventId);
     }
 
     private RequestStatus toRequestStatus(UpdRequestStatus updStatus) {

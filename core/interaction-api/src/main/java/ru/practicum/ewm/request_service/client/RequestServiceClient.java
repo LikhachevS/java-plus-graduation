@@ -23,4 +23,6 @@ public interface RequestServiceClient {
     List<ParticipationRequestDto> updateRequestStatuses(
             @RequestBody EventRequestStatusUpdateRequest request);
 
+    @GetMapping("{eventId}/participant/{userId}")
+    boolean isParticipant(@PathVariable Long userId, @PathVariable Long eventId);
 }
