@@ -24,3 +24,8 @@ eureka:
     prefer-ip-address: true
     instance-id: "${spring.application.name}:${random.value}"
     leaseRenewalIntervalInSeconds: 10
+
+logging:
+  level:
+    com.netflix.discovery.DiscoveryClient: DEBUG
+    org.springframework.cloud.netflix.eureka: DEBUG

@@ -101,4 +101,9 @@ public class AggregationStarter {
             });
         }
     }
+
+    public void stop() {
+        log.info("Остановка агрегатора через wakeup...");
+        consumer.wakeup();
+    }
 }
