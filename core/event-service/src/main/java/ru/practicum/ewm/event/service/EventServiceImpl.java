@@ -11,11 +11,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.ReqStatsParams;
-import ru.practicum.ewm.StatsDto;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.repository.CategoryRepository;
-import ru.practicum.ewm.client.StatsClient;
+import ru.practicum.ewm.client.stats.CollectorClient;
+import ru.practicum.ewm.client.stats.RecommendationsClient;
 import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.model.Event;
@@ -31,14 +30,13 @@ import ru.practicum.ewm.request_service.dto.UpdRequestsStatusResult;
 import ru.practicum.ewm.request_service.enums.RequestStatus;
 import ru.practicum.ewm.user_service.client.UserServiceClient;
 import ru.practicum.ewm.user_service.dto.UserDto;
+import ru.practicum.ewm.user_service.exception.BadRequestException;
 import ru.practicum.ewm.user_service.exception.ConflictException;
 import ru.practicum.ewm.user_service.exception.NotFoundException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static java.time.ZoneOffset.UTC;
 import static ru.practicum.ewm.event.model.EventState.CANCELED;
@@ -56,7 +54,8 @@ public class EventServiceImpl implements EventService {
 
     private final EventMapper eventMapper;
 
-    private final StatsClient statsClient;
+    private final CollectorClient grpcCollectorClient;
+    private final RecommendationsClient grpcAnalyzerClient;
 
     // Private API:
     @Override
@@ -342,14 +341,13 @@ public class EventServiceImpl implements EventService {
 
     // Public API:
     @Override
-    public EventFullDto getPublicBy(Long eventId, HttpServletRequest request) {
+    public EventFullDto getPublicBy(Long eventId, Long userId, HttpServletRequest request) {
         log.debug("Метод getPublicById(); eventId={}", eventId);
 
         Event event = eventRepository.findByIdAndState(eventId, EventState.PUBLISHED)
                 .orElseThrow(() -> new NotFoundException("Опубликованного Event id={} нет", eventId));
 
-        statsClient.hit(request);
-        this.setViewsForEvent(event);
+        grpcCollectorClient.recordView(eventId, userId);
 
         return eventMapper.toFullDto(event);
     }
@@ -408,15 +406,38 @@ public class EventServiceImpl implements EventService {
         switch (params.getSort()) {
             case EVENT_DATE -> pageable =
                     PageRequest.of(page, params.getSize(), Sort.by(Sort.Direction.ASC, "eventDate"));
-            case VIEWS -> pageable =
+            case RATING -> pageable =
                     PageRequest.of(page, params.getSize(), Sort.by(Sort.Direction.DESC, "views"));
         }
 
         Page<Event> events = eventRepository.findAll(finalCondition, pageable);
 
-        statsClient.hit(request);
-
         return events.map(eventMapper::toFullDto).getContent();
+    }
+
+    @Override
+    public void like(Long userId, Long eventId) {
+        if (!requestServiceClient.isParticipant(userId, eventId)) {
+            throw new BadRequestException("User id={} не является участником event eventId={}", userId, eventId);
+        }
+
+        if (!eventRepository.existsByIdAndEventDateBefore(eventId, Instant.now())) {
+            throw new BadRequestException("Event eventId={} еще не прошло", eventId);
+        }
+
+        grpcCollectorClient.recordLike(eventId, userId);
+    }
+
+    @Override
+    public List<EventShortDto> getRecommendations(Long userId, int maxResults) {
+        Map<Long, Double> scoreByEvent = grpcAnalyzerClient.getRecommendationsForUser(userId, maxResults);
+        Set<Long> eventIds = scoreByEvent.keySet();
+        List<Event> events = eventRepository.findAllByIdIn(eventIds);
+
+        return events.stream()
+                .map(eventMapper::toShortDto)
+                .peek(dto -> dto.setRating(scoreByEvent.get(dto.getId())))
+                .toList();
     }
 
     @Override
@@ -473,16 +494,5 @@ public class EventServiceImpl implements EventService {
         if (eventDate != null && eventDate.isBefore(LocalDateTime.now().plusHours(1))) {
             throw new ConflictException("Дата Event при ПУБЛИКАЦИИ должна быть в будущем, мин. через 1 час");
         }
-    }
-
-    private void setViewsForEvent(Event event) {
-        List<StatsDto> stats = statsClient.getStats(ReqStatsParams.builder()
-                .start(LocalDateTime.now().minusYears(100))
-                .end(LocalDateTime.now().plusYears(1))
-                .uris(List.of("/events/" + event.getId()))
-                .unique(true)
-                .build());
-
-        event.setViews(stats.getFirst().getHits());
     }
 }

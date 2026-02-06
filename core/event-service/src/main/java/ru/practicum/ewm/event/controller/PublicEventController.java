@@ -2,12 +2,15 @@ package ru.practicum.ewm.event.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.EventFullDto;
+import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.dto.UserEventSearchParams;
 import ru.practicum.ewm.event.service.EventService;
 import ru.practicum.ewm.event_service.dto.EventDtoForRequestService;
@@ -20,14 +23,16 @@ import java.util.List;
 @RequestMapping("/events")
 public class PublicEventController {
 
+    private static final String USER_ID_HEADER = "X-EWM-USER-ID";
     private final EventService eventService;
 
     @GetMapping("/{eventId}")
-    public ResponseEntity<EventFullDto> publicSearchOne(@PathVariable @Positive Long eventId,
+    public ResponseEntity<EventFullDto> publicSearchOne(@PathVariable Long eventId,
+                                                        @RequestHeader(value = USER_ID_HEADER, required = false) Long userId,
                                                         HttpServletRequest request) {
         log.debug("Метод publicSearchOne(); eventId={}", eventId);
 
-        EventFullDto event = eventService.getPublicBy(eventId, request);
+        EventFullDto event = eventService.getPublicBy(eventId, userId, request);
         return ResponseEntity.ok(event);
     }
 
@@ -64,5 +69,25 @@ public class PublicEventController {
             log.error("Ошибка при инкременте confirmedRequests для eventId={}: {}", eventId, e.getMessage());
             return ResponseEntity.status(500).build();
         }
+    }
+
+    @PutMapping("/{eventId}/like")
+    public ResponseEntity<Void> like(@PathVariable @PositiveOrZero @NotNull Long eventId,
+                                     @RequestHeader(USER_ID_HEADER) Long userId) {
+        log.debug("Метод like(); eventId={}, userId={}", eventId, userId);
+
+        eventService.like(eventId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/recommendations")
+    public ResponseEntity<List<EventShortDto>> getRecommendations(
+            @RequestHeader(USER_ID_HEADER) Long userId,
+            @RequestParam(defaultValue = "10") @Positive int size
+    ) {
+        log.debug("Метод getRecommendations();  userId={}, size={}", userId, size);
+
+        List<EventShortDto> result = eventService.getRecommendations(userId, size);
+        return ResponseEntity.ok(result);
     }
 }
