@@ -23,11 +23,12 @@ import java.util.List;
 @RequestMapping("/events")
 public class PublicEventController {
 
+    private static final String USER_ID_HEADER = "X-EWM-USER-ID";
     private final EventService eventService;
 
     @GetMapping("/{eventId}")
     public ResponseEntity<EventFullDto> publicSearchOne(@PathVariable Long eventId,
-                                                        @RequestHeader(value = "X-EWM-USER-ID", required = false) Long userId,
+                                                        @RequestHeader(value = USER_ID_HEADER, required = false) Long userId,
                                                         HttpServletRequest request) {
         log.debug("Метод publicSearchOne(); eventId={}", eventId);
 
@@ -72,7 +73,7 @@ public class PublicEventController {
 
     @PutMapping("/{eventId}/like")
     public ResponseEntity<Void> like(@PathVariable @PositiveOrZero @NotNull Long eventId,
-                                     @RequestHeader("X-EWM-USER-ID") Long userId) {
+                                     @RequestHeader(USER_ID_HEADER) Long userId) {
         log.debug("Метод like(); eventId={}, userId={}", eventId, userId);
 
         eventService.like(eventId, userId);
@@ -81,7 +82,7 @@ public class PublicEventController {
 
     @GetMapping("/recommendations")
     public ResponseEntity<List<EventShortDto>> getRecommendations(
-            @RequestHeader("X-EWM-USER-ID") Long userId,
+            @RequestHeader(USER_ID_HEADER) Long userId,
             @RequestParam(defaultValue = "10") @Positive int size
     ) {
         log.debug("Метод getRecommendations();  userId={}, size={}", userId, size);

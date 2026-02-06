@@ -11,8 +11,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-//import ru.practicum.ewm.ReqStatsParams;
-//import ru.practicum.ewm.StatsDto;
 import ru.practicum.ewm.category.model.Category;
 import ru.practicum.ewm.category.repository.CategoryRepository;
 import ru.practicum.ewm.client.stats.CollectorClient;
@@ -21,7 +19,6 @@ import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.model.Event;
 import ru.practicum.ewm.event.model.EventState;
-//import ru.practicum.ewm.event.model.QEvent;
 import ru.practicum.ewm.event.model.QEvent;
 import ru.practicum.ewm.event.repository.EventRepository;
 import ru.practicum.ewm.event_service.dto.EventDtoForRequestService;
@@ -59,8 +56,6 @@ public class EventServiceImpl implements EventService {
 
     private final CollectorClient grpcCollectorClient;
     private final RecommendationsClient grpcAnalyzerClient;
-
-    //private final StatsClient statsClient;
 
     // Private API:
     @Override
